@@ -1,0 +1,16 @@
+1. SampleSource interface ✔
+2. SampleBuffer class (basic)
+ - Should take a work function and SampleSource for input
+ - Produces work(samples)
+3. Convert InputSource to SampleSource interface ✔
+4. Test current IQ waveform with SampleSource interface
+5. Test with dummy SampleBuffer class (just 1:1 work function)
+6. GNURadio memory source/sink blocks
+7. Create some SampleBuffer classes that run a flowgraph
+8. More test
+9. Multiple waveforms
+#. Pretty things up:
+ - Rubber band to select samples
+ - Catch all appropriate repaint events
+ - Labels & legends for waveforms
+ - Menu options to add/remove waveforms
