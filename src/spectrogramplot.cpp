@@ -33,9 +33,9 @@
 #include "util.h"
 
 
-SpectrogramPlot::SpectrogramPlot(std::shared_ptr<SampleSource<std::complex<float>>> src) : Plot(src), inputSource(src), fftSize(512), tuner(fftSize, this)
+SpectrogramPlot::SpectrogramPlot(std::shared_ptr<SampleSource<std::complex<float>>> src) : Plot(src), inputSource(src), fftSize(512), windowSize(100), tuner(fftSize, this)
 {
-    setFFTSize(fftSize);
+    setFFTSize(fftSize, windowSize);
     zoomLevel = 1;
     powerMax = 0.0f;
     powerMin = -50.0f;
@@ -55,7 +55,7 @@ SpectrogramPlot::SpectrogramPlot(std::shared_ptr<SampleSource<std::complex<float
 void SpectrogramPlot::invalidateEvent()
 {
     // HACK: this makes sure we update the height for real signals (as InputSource is passed here before the file is opened)
-    setFFTSize(fftSize);
+    setFFTSize(fftSize, windowSize);
 
     pixmapCache.clear();
     fftCache.clear();
@@ -244,7 +244,7 @@ void SpectrogramPlot::paintMid(QPainter &painter, QRect &rect, range_t<size_t> s
 
 QPixmap* SpectrogramPlot::getPixmapTile(size_t tile)
 {
-    QPixmap *obj = pixmapCache.object(TileCacheKey(fftSize, zoomLevel, tile));
+    QPixmap *obj = pixmapCache.object(TileCacheKey(fftSize, windowSize, zoomLevel, tile));
     if (obj != 0)
         return obj;
 
@@ -263,13 +263,13 @@ QPixmap* SpectrogramPlot::getPixmapTile(size_t tile)
         }
     }
     obj->convertFromImage(image);
-    pixmapCache.insert(TileCacheKey(fftSize, zoomLevel, tile), obj);
+    pixmapCache.insert(TileCacheKey(fftSize, windowSize, zoomLevel, tile), obj);
     return obj;
 }
 
 float* SpectrogramPlot::getFFTTile(size_t tile)
 {
-    std::array<float, tileSize>* obj = fftCache.object(TileCacheKey(fftSize, zoomLevel, tile));
+    std::array<float, tileSize>* obj = fftCache.object(TileCacheKey(fftSize, windowSize, zoomLevel, tile));
     if (obj != nullptr)
         return obj->data();
 
@@ -281,7 +281,7 @@ float* SpectrogramPlot::getFFTTile(size_t tile)
         sample += getStride();
         ptr += fftSize;
     }
-    fftCache.insert(TileCacheKey(fftSize, zoomLevel, tile), destStorage);
+    fftCache.insert(TileCacheKey(fftSize, windowSize, zoomLevel, tile), destStorage);
     return destStorage->data();
 }
 
@@ -364,15 +364,21 @@ std::shared_ptr<AbstractSampleSource> SpectrogramPlot::output()
     return tunerTransform;
 }
 
-void SpectrogramPlot::setFFTSize(int size)
+void SpectrogramPlot::setFFTSize(int size, int window_size)
 {
     float sizeScale = float(size) / float(fftSize);
     fftSize = size;
     fft.reset(new FFT(fftSize));
 
+    windowSize = window_size;
+    int n = fftSize * window_size / 100.0f;
     window.reset(new float[fftSize]);
-    for (int i = 0; i < fftSize; i++) {
-        window[i] = 0.5f * (1.0f - cos(Tau * i / (fftSize - 1)));
+    int i = 0;
+    for (; i < n; i++) {
+        window[i] = 0.5f * (1.0f - cos(Tau * i / (n - 1)));
+    }
+    for (; i < fftSize; i++) {
+        window[i] = 0.0f;
     }
 
     if (inputSource->realSignal()) {
@@ -444,5 +450,5 @@ void SpectrogramPlot::tunerMoved()
 
 uint qHash(const TileCacheKey &key, uint seed)
 {
-    return key.fftSize ^ key.zoomLevel ^ key.sample ^ seed;
+    return key.fftSize ^ key.windowSize ^ key.zoomLevel ^ key.sample ^ seed;
 }

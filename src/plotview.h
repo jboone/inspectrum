@@ -51,7 +51,7 @@ public slots:
     void invalidateEvent() override;
     void repaint();
     void setCursorSegments(int segments);
-    void setFFTAndZoom(int fftSize, int zoomLevel);
+    void setViewConfig(int fftSize, int windowSize, int zoomLevel);
     void setPowerMin(int power);
     void setPowerMax(int power);
 
@@ -76,6 +76,7 @@ private:
     size_t zoomSample;
 
     int fftSize = 1024;
+    int windowSize = 100;
     int zoomLevel = 1;
     int powerMin;
     int powerMax;

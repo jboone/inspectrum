@@ -37,7 +37,7 @@ public:
     void setDefaults();
 
 signals:
-    void fftOrZoomChanged(int fftSize, int zoomLevel);
+    void viewConfigChanged(int fftSize, int windowSize, int zoomLevel);
     void openFile(QString fileName);
 
 public slots:
@@ -48,6 +48,7 @@ public slots:
 
 private slots:
     void fftSizeChanged(int value);
+    void windowSizeChanged(int value);
     void zoomLevelChanged(int value);
     void powerMinChanged(int value);
     void powerMaxChanged(int value);
@@ -58,12 +59,13 @@ private:
     QWidget *widget;
     QFormLayout *layout;
     void clearCursorLabels();
-    void fftOrZoomChanged(void);
+    void sendViewConfigChanged(void);
 
 public:
     QPushButton *fileOpenButton;
     QLineEdit *sampleRate;
     QSlider *fftSizeSlider;
+    QSlider *windowSizeSlider;
     QSlider *zoomLevelSlider;
     QSlider *powerMaxSlider;
     QSlider *powerMinSlider;

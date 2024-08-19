@@ -434,14 +434,15 @@ void PlotView::setCursorSegments(int segments)
     emitTimeSelection();
 }
 
-void PlotView::setFFTAndZoom(int size, int zoom)
+void PlotView::setViewConfig(int size, int window, int zoom)
 {
     auto oldSamplesPerColumn = samplesPerColumn();
 
     // Set new FFT size
     fftSize = size;
+    windowSize = window;
     if (spectrogramPlot != nullptr)
-        spectrogramPlot->setFFTSize(size);
+        spectrogramPlot->setFFTSize(size, window);
 
     // Set new zoom level
     zoomLevel = zoom;

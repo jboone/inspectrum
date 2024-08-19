@@ -51,6 +51,11 @@ SpectrogramControls::SpectrogramControls(const QString & title, QWidget * parent
 
     layout->addRow(new QLabel(tr("FFT size:")), fftSizeSlider);
 
+    windowSizeSlider = new QSlider(Qt::Horizontal, widget);
+    windowSizeSlider->setRange(0, 100);
+    
+    layout->addRow(new QLabel(tr("Window size:")), windowSizeSlider);
+
     zoomLevelSlider = new QSlider(Qt::Horizontal, widget);
     zoomLevelSlider->setRange(0, 10);
     zoomLevelSlider->setPageStep(1);
@@ -106,6 +111,7 @@ SpectrogramControls::SpectrogramControls(const QString & title, QWidget * parent
     setWidget(widget);
 
     connect(fftSizeSlider, &QSlider::valueChanged, this, &SpectrogramControls::fftSizeChanged);
+    connect(windowSizeSlider, &QSlider::valueChanged, this, &SpectrogramControls::windowSizeChanged);
     connect(zoomLevelSlider, &QSlider::valueChanged, this, &SpectrogramControls::zoomLevelChanged);
     connect(fileOpenButton, &QPushButton::clicked, this, &SpectrogramControls::fileOpenButtonClicked);
     connect(cursorsCheckBox, &QCheckBox::stateChanged, this, &SpectrogramControls::cursorsStateChanged);
@@ -130,7 +136,7 @@ void SpectrogramControls::cursorsStateChanged(int state)
 
 void SpectrogramControls::setDefaults()
 {
-    fftOrZoomChanged();
+    // fftOrZoomChanged();
 
     cursorsCheckBox->setCheckState(Qt::Unchecked);
     cursorSymbolsSpinBox->setValue(1);
@@ -143,30 +149,41 @@ void SpectrogramControls::setDefaults()
     int savedSampleRate = settings.value("SampleRate", 8000000).toInt();
     sampleRate->setText(QString::number(savedSampleRate));
     fftSizeSlider->setValue(settings.value("FFTSize", 9).toInt());
+    windowSizeSlider->setValue(settings.value("WindowSize", 100).toInt());
     powerMaxSlider->setValue(settings.value("PowerMax", 0).toInt());
     powerMinSlider->setValue(settings.value("PowerMin", -100).toInt());
     zoomLevelSlider->setValue(settings.value("ZoomLevel", 0).toInt());
+
+    sendViewConfigChanged();
 }
 
-void SpectrogramControls::fftOrZoomChanged(void)
+void SpectrogramControls::sendViewConfigChanged(void)
 {
     int fftSize = pow(2, fftSizeSlider->value());
+    int windowSize = windowSizeSlider->value();
     int zoomLevel = std::min(fftSize, (int)pow(2, zoomLevelSlider->value()));
-    emit fftOrZoomChanged(fftSize, zoomLevel);
+    emit viewConfigChanged(fftSize, windowSize, zoomLevel);
 }
 
 void SpectrogramControls::fftSizeChanged(int value)
 {
     QSettings settings;
     settings.setValue("FFTSize", value);
-    fftOrZoomChanged();
+    sendViewConfigChanged();
+}
+
+void SpectrogramControls::windowSizeChanged(int value)
+{
+    QSettings settings;
+    settings.setValue("WindowSize", value);
+    sendViewConfigChanged();
 }
 
 void SpectrogramControls::zoomLevelChanged(int value)
 {
     QSettings settings;
     settings.setValue("ZoomLevel", value);
-    fftOrZoomChanged();
+    sendViewConfigChanged();
 }
 
 void SpectrogramControls::powerMinChanged(int value)

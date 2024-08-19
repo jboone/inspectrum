@@ -56,7 +56,7 @@ public:
     QString *mouseAnnotationComment(const QMouseEvent *event);
 
 public slots:
-    void setFFTSize(int size);
+    void setFFTSize(int size, int windowSize);
     void setPowerMax(int power);
     void setPowerMin(int power);
     void setZoomLevel(int zoom);
@@ -75,6 +75,7 @@ private:
     uint colormap[256];
 
     int fftSize;
+    int windowSize;
     int zoomLevel;
     float powerMax;
     float powerMin;
@@ -100,19 +101,22 @@ class TileCacheKey
 {
 
 public:
-    TileCacheKey(int fftSize, int zoomLevel, size_t sample) {
+    TileCacheKey(int fftSize, int windowSize, int zoomLevel, size_t sample) {
         this->fftSize = fftSize;
+        this->windowSize = windowSize;
         this->zoomLevel = zoomLevel;
         this->sample = sample;
     }
 
     bool operator==(const TileCacheKey &k2) const {
         return (this->fftSize == k2.fftSize) &&
+               (this->windowSize == k2.windowSize) &&
                (this->zoomLevel == k2.zoomLevel) &&
                (this->sample == k2.sample);
     }
 
     int fftSize;
+    int windowSize;
     int zoomLevel;
     size_t sample;
 };
